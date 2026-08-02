@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>🎮 تحدي الذاكرة - أعمدة وصفوف متوازية</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: #f0f2f5;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: #ffffff;
+    border-radius: 35px;
+    padding: 25px;
+    width: 100%;
+    max-width: 1400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+h1 {
+    text-align: center;
+    color: #1e293b;
+    margin-bottom: 25px;
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+/* ========== شاشة الإعداد ========== */
+.setup-box {
+    background: #f8fafc;
+    border-radius: 25px;
+    padding: 30px;
+    border: 1px solid #e9eef2;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #334155;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    font-size: 1rem;
+    background: white;
+    color: #1e293b;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #4361ee;
+}
+
+.modes-container {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.mode-card {
+    flex: 1;
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.mode-card.active {
+    border-color: #4361ee;
+    background: #eef2ff;
+    transform: translateY(-3px);
+}
+
+.mode-card h3 {
+    font-size: 1.3em;
+    margin-bottom: 8px;
+}
+
+.mode-card p {
+    font-size: 0.85em;
+    color: #64748b;
+}
+
+.mode-icon {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.mode-badge {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 50px;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+.badge-normal { background: #f97316; color: white; }
+.badge-advanced { background: #ef4444; color: white; }
+
+.start-btn {
+    width: 100%;
+    padding: 16px;
+    background: #4361ee;
+    color: white;
+    border: none;
+    border-radius: 18px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.start-btn:hover {
+    background: #3651d4;
+    transform: translateY(-2px);
+}
+
+/* ========== شاشة اللعب ========== */
+.game-header {
+    background: #f8fafc;
+    border-radius: 20px;
+    padding: 12px 18px;
+    margin-bottom: 25px;
+}
+
+.team-turn {
+    text-align: center;
+    font-size: 1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding: 6px;
+    background: white;
+    border-radius: 12px;
+}
+
+.game-stats {
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.stat {
+    background: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    text-align: center;
+    flex: 1;
+    min-width: 80px;
+}
+
+.stat-label {
+    font-size: 0.7em;
+    color: #64748b;
+}
+
+.stat-value {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.stat-value.highlight { color: #10b981; }
+
+.current-mode-indicator {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 30px;
+    font-size: 0.7em;
+    font-weight: bold;
+}
+
+.mode-indicator-normal { background: #f97316; color: white; }
+.mode-indicator-advanced { background: #ef4444; color: white; }
+
+/* ========== الشبكة المتوازية تماماً ========== */
+.game-board-wrapper {
+    overflow-x: auto;
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+}
+
+/* الحاوية الرئيسية */
+.grid-main-container {
+    display: inline-flex;
+    flex-direction: column;
+}
+
+/* صف أرقام الأعمدة */
+.columns-header-row {
+    display: flex;
+    margin-bottom: 10px;
+    margin-right: 55px; /* مساحة لأرقام الصفوف الجانبية */
+    gap: 10px;
+}
+
+.column-header {
+    background: #eef2ff;
+    border-radius: 12px;
+    text-align: center;
+    font-weight: bold;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: #1e40af;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* حاوية الجسم (الصفوف الجانبية + الشبكة) */
+.grid-body-container {
+    display: flex;
+}
+
+/* أرقام الصفوف الجانبية */
+.rows-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+.row-header {
+    background: #eef2ff;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #1e40af;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    width: 45px;
+}
+
+/* الشبكة الرئيسية */
+.grid {
+    display: grid;
+    gap: 10px;
+}
+
+/* البطاقة */
+.tile {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1e293b;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+}
+
+.tile:hover {
+    transform: scale(1.02);
+    border-color: #4361ee;
+}
+
+.tile.revealed {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+    cursor: default;
+}
+
+.tile.revealed:hover {
+    transform: none;
+}
+
+.tile.error {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: white;
+    animation: shake 0.3s;
+}
+
+.tile.flash {
+    background: #f97316;
+    border-color: #f97316;
+    color: white;
+    animation: flash 0.5s;
+}
+
+@keyframes shake {
+    0%,100%{ transform: translateX(0); }
+    25%{ transform: translateX(-5px); }
+    75%{ transform: translateX(5px); }
+}
+
+@keyframes flash {
+    0%,100%{ opacity: 1; }
+    50%{ opacity: 0.6; }
+}
+
+.control-btn {
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 8px 22px;
+    border-radius: 40px;
+    font-size: 0.9em;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    display: none;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 35px;
+    text-align: center;
+    max-width: 350px;
+    width: 90%;
+}
+
+.winner-text {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.play-again-btn {
+    background: #4361ee;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 40px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.hint-box {
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    margin-top: 15px;
+    text-align: center;
+}
+
+/* استجابة للشاشات */
+@media (max-width: 850px) {
+    .tile { width: 70px; height: 70px; font-size: 18px; }
+    .column-header { width: 70px; font-size: 0.8rem; }
+    .row-header { height: 70px; width: 42px; font-size: 0.8rem; }
+    .columns-header-row { margin-right: 48px; gap: 8px; }
+    .grid, .rows-sidebar, .columns-header-row { gap: 8px; }
+}
+
+@media (max-width: 650px) {
+    .tile { width: 55px; height: 55px; font-size: 15px; }
+    .column-header { width: 55px; font-size: 0.7rem; padding: 5px 0; }
+    .row-header { width: 38px; height: 55px; font-size: 0.7rem; }
+    .columns-header-row { margin-right: 42px; gap: 8px; }
+    .modes-container { flex-direction: column; }
+    .setup-box { padding: 20px; }
+}
+
+@media (max-width: 500px) {
+    .tile { width: 45px; height: 45px; font-size: 12px; }
+    .column-header { width: 45px; font-size: 0.6rem; }
+    .row-header { width: 34px; height: 45px; font-size: 0.6rem; }
+    .columns-header-row { margin-right: 38px; gap: 6px; }
+    .grid, .rows-sidebar, .columns-header-row { gap: 6px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🧠 تحدي الذاكرة <span>🎯</span></h1>
+
+<div id="setup">
+    <div class="setup-box">
+        <div class="input-group">
+            <label>👥 اسم الفريق الأول</label>
+            <input type="text" id="team1" value="الأزرق">
+        </div>
+        <div class="input-group">
+            <label>👥 اسم الفريق الثاني</label>
+            <input type="text" id="team2" value="الأحمر">
+        </div>
+        <div class="input-group">
+            <label>🔢 عدد الأرقام (5 - 100)</label>
+            <input type="number" id="total" value="36" min="5" max="100">
+        </div>
+        <div class="input-group">
+            <label>⏱️ مدة الحفظ (ثواني)</label>
+            <input type="number" id="memoryTime" value="15" min="3">
+        </div>
+
+        <div style="margin: 20px 0 10px;">
+            <label style="font-weight: bold; font-size: 1rem;">🎮 اختر طريقة اللعب:</label>
+        </div>
+        <div class="modes-container">
+            <div class="mode-card mode-1 active" id="mode1Card" onclick="setMode(1)">
+                <div class="mode-icon">🎯</div>
+                <h3>الوضع العادي</h3>
+                <p>عند الخطأ يظهر الرقم الصحيح</p>
+                <span class="mode-badge badge-normal">مناسب للمبتدئين</span>
+            </div>
+            <div class="mode-card mode-2" id="mode2Card" onclick="setMode(2)">
+                <div class="mode-icon">⚡</div>
+                <h3>الوضع المتقدم</h3>
+                <p>عند الخطأ يظهر فقط خطأ</p>
+                <span class="mode-badge badge-advanced">تحدي للخبراء</span>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">🚀 ابدأ التحدي</button>
+        <div class="hint-box">💡 الفريق يكمل دوره طالما يختار الأرقام الصحيحة. الأعمدة (فوق) والصفوف (يمين) بأرقام فقط</div>
+    </div>
+</div>
+
+<div id="game" style="display: none;">
+    <div class="game-header">
+        <div class="team-turn">🎲 دور <span id="teamName">الأزرق</span></div>
+        <div class="game-stats">
+            <div class="stat"><div class="stat-label">الرقم المطلوب</div><div class="stat-value highlight" id="currentNumber">1</div></div>
+            <div class="stat"><div class="stat-label">الحفظ</div><div class="stat-value" id="countdown">0</div></div>
+            <div class="stat"><div class="stat-label">الوضع</div><div class="stat-value"><span id="modeDisplay" class="current-mode-indicator mode-indicator-normal">عادي</span></div></div>
+        </div>
+    </div>
+
+    <div class="game-board-wrapper">
+        <div class="grid-main-container" id="gridMainContainer">
+            <div class="columns-header-row" id="columnsHeaderRow"></div>
+            <div class="grid-body-container">
+                <div class="rows-sidebar" id="rowsSidebar"></div>
+                <div id="grid" class="grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: center;">
+        <button class="control-btn" onclick="restartGame()">🔄 إعادة تشغيل</button>
+    </div>
+</div>
+
+<div id="winnerModal" class="modal">
+    <div class="modal-content">
+        <div class="winner-emoji">🏆</div>
+        <div id="winnerText" class="winner-text"></div>
+        <button class="play-again-btn" onclick="restartGame()">العب مرة أخرى</button>
+    </div>
+</div>
+
+<script>
+let team1, team2, N, memorySeconds;
+let numbers = [];
+let currentNumber = 1;
+let currentTeam;
+let revealedTiles = [];
+let gameLocked = false;
+let gameMode = 1;
+let countdownInterval;
+let isMemorizing = false;
+let currentCols = 0;
+let currentRows = 0;
+let tileSize = 85;
+let gapSize = 10;
+
+let savedSettings = localStorage.getItem('memoryGameSettings');
+if (savedSettings) {
+    savedSettings = JSON.parse(savedSettings);
+    document.getElementById('team1').value = savedSettings.team1 || 'الأزرق';
+    document.getElementById('team2').value = savedSettings.team2 || 'الأحمر';
+    document.getElementById('total').value = savedSettings.total || 36;
+    document.getElementById('memoryTime').value = savedSettings.memoryTime || 15;
+    gameMode = savedSettings.gameMode || 1;
+    setMode(gameMode);
+}
+
+function setMode(mode) {
+    gameMode = mode;
+    document.getElementById('mode1Card').classList.toggle('active', mode === 1);
+    document.getElementById('mode2Card').classList.toggle('active', mode === 2);
+    const modeDisplay = document.getElementById('modeDisplay');
+    if (modeDisplay) {
+        modeDisplay.textContent = mode === 1 ? '🎯 عادي' : '⚡ متقدم';
+        modeDisplay.className = mode === 1 ? 'current-mode-indicator mode-indicator-normal' : 'current-mode-indicator mode-indicator-advanced';
+    }
+}
+
+function saveSettings() {
+    localStorage.setItem('memoryGameSettings', JSON.stringify({
+        team1: document.getElementById('team1').value,
+        team2: document.getElementById('team2').value,
+        total: document.getElementById('total').value,
+        memoryTime: document.getElementById('memoryTime').value,
+        gameMode: gameMode
+    }));
+}
+
+function updateTileSize() {
+    if (window.innerWidth < 500) tileSize = 45;
+    else if (window.innerWidth < 650) tileSize = 55;
+    else if (window.innerWidth < 850) tileSize = 70;
+    else tileSize = 85;
+}
+
+function generatePerfectGrid() {
+    updateTileSize();
+    currentCols = Math.ceil(Math.sqrt(N));
+    currentRows = Math.ceil(N / currentCols);
+    
+    // خلط الأرقام
+    numbers = [];
+    for (let i = 1; i <= N; i++) numbers.push(i);
+    for (let i = numbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+    
+    // إعداد الشبكة
+    const gridContainer = document.getElementById('grid');
+    gridContainer.style.display = 'grid';
+    gridContainer.style.gridTemplateColumns = `repeat(${currentCols}, ${tileSize}px)`;
+    gridContainer.style.gap = `${gapSize}px`;
+    gridContainer.innerHTML = '';
+    
+    // إنشاء البطاقات
+    for (let i = 0; i < numbers.length; i++) {
+        const num = numbers[i];
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.style.width = `${tileSize}px`;
+        tile.style.height = `${tileSize}px`;
+        tile.dataset.number = num;
+        tile.textContent = num;
+        tile.onclick = () => handleTileClick(tile);
+        gridContainer.appendChild(tile);
+    }
+    
+    // إضافة بطاقات فارغة
+    const totalCells = currentRows * currentCols;
+    for (let i = numbers.length; i < totalCells; i++) {
+        const emptyTile = document.createElement('div');
+        emptyTile.className = 'tile';
+        emptyTile.style.width = `${tileSize}px`;
+        emptyTile.style.height = `${tileSize}px`;
+        emptyTile.style.visibility = 'hidden';
+        emptyTile.style.cursor = 'default';
+        emptyTile.style.backgroundColor = '#f1f5f9';
+        emptyTile.onclick = () => {};
+        gridContainer.appendChild(emptyTile);
+    }
+    
+    // إنشاء أرقام الأعمدة - أرقام فقط بدون كلمة "عمود"
+    const columnsHeaderRow = document.getElementById('columnsHeaderRow');
+    columnsHeaderRow.innerHTML = '';
+    columnsHeaderRow.style.display = 'flex';
+    columnsHeaderRow.style.gap = `${gapSize}px`;
+    
+    for (let c = 1; c <= currentCols; c++) {
+        const colHeader = document.createElement('div');
+        colHeader.className = 'column-header';
+        colHeader.style.width = `${tileSize}px`;
+        colHeader.textContent = c;
+        columnsHeaderRow.appendChild(colHeader);
+    }
+    
+    // إنشاء أرقام الصفوف - أرقام فقط بدون كلمة "صف"
+    const rowsSidebar = document.getElementById('rowsSidebar');
+    rowsSidebar.innerHTML = '';
+    rowsSidebar.style.display = 'flex';
+    rowsSidebar.style.flexDirection = 'column';
+    rowsSidebar.style.gap = `${gapSize}px`;
+    
+    for (let r = 1; r <= currentRows; r++) {
+        const rowHeader = document.createElement('div');
+        rowHeader.className = 'row-header';
+        rowHeader.style.height = `${tileSize}px`;
+        rowHeader.textContent = r;
+        rowsSidebar.appendChild(rowHeader);
+    }
+}
+
+function startGame() {
+    team1 = document.getElementById('team1').value || 'الأزرق';
+    team2 = document.getElementById('team2').value || 'الأحمر';
+    N = parseInt(document.getElementById('total').value);
+    memorySeconds = parseInt(document.getElementById('memoryTime').value);
+
+    if (N < 5 || N > 100) { alert('❌ عدد الأرقام بين 5 و 100'); return; }
+    if (memorySeconds < 3) { alert('❌ زمن الحفظ 3 ثوان على الأقل'); return; }
+
+    saveSettings();
+
+    document.getElementById('setup').style.display = 'none';
+    document.getElementById('game').style.display = 'block';
+
+    currentTeam = team1;
+    document.getElementById('teamName').textContent = currentTeam;
+    currentNumber = 1;
+    document.getElementById('currentNumber').textContent = '1';
+    revealedTiles = [];
+    gameLocked = false;
+
+    generatePerfectGrid();
+    startMemorization();
+}
+
+function startMemorization() {
+    if (countdownInterval) clearInterval(countdownInterval);
+    isMemorizing = true;
+    
+    let timeLeft = memorySeconds;
+    document.getElementById('countdown').textContent = timeLeft;
+    
+    const tiles = document.querySelectorAll('#grid .tile');
+    tiles.forEach((tile) => {
+        if (tile.dataset.number) {
+            tile.textContent = tile.dataset.number;
+        }
+        tile.classList.remove('revealed', 'error', 'flash');
+    });
+    
+    countdownInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('countdown').textContent = timeLeft >= 0 ? timeLeft : 0;
+        
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            document.querySelectorAll('#grid .tile').forEach(tile => {
+                if (tile.dataset.number) {
+                    tile.textContent = '❓';
+                }
+            });
+            document.getElementById('countdown').textContent = 'ابدأ';
+            isMemorizing = false;
+        }
+    }, 1000);
+}
+
+function handleTileClick(tile) {
+    if (gameLocked || isMemorizing) return;
+    if (revealedTiles.includes(tile)) return;
+    if (!tile.dataset.number) return;
+    
+    const num = parseInt(tile.dataset.number);
+    
+    if (num === currentNumber) {
+        tile.textContent = num;
+        tile.classList.add('revealed');
+        revealedTiles.push(tile);
+        
+        currentNumber++;
+        document.getElementById('currentNumber').textContent = currentNumber;
+        
+        if (currentNumber > N) {
+            winGame();
+        }
+    } else {
+        gameLocked = true;
+        tile.classList.add('error');
+        
+        if (gameMode === 1) {
+            tile.textContent = num;
+            tile.classList.add('flash');
+            setTimeout(() => {
+                tile.classList.remove('error', 'flash');
+                tile.textContent = '❓';
+                switchTurn();
+            }, 800);
+        } else {
+            setTimeout(() => {
+                tile.classList.remove('error');
+                switchTurn();
+            }, 500);
+        }
+    }
+}
+
+function switchTurn() {
+    revealedTiles.forEach(tile => {
+        tile.classList.remove('revealed', 'flash');
+        tile.textContent = '❓';
+    });
+    
+    revealedTiles = [];
+    currentNumber = 1;
+    document.getElementById('currentNumber').textContent = '1';
+    
+    currentTeam = currentTeam === team1 ? team2 : team1;
+    document.getElementById('teamName').textContent = currentTeam;
+    
+    gameLocked = false;
+}
+
+function winGame() {
+    clearInterval(countdownInterval);
+    document.getElementById('winnerText').innerHTML = `🎉 الفائز: ${currentTeam} 🎉`;
+    document.getElementById('winnerModal').style.display = 'flex';
+    gameLocked = true;
+}
+
+function restartGame() {
+    document.getElementById('game').style.display = 'none';
+    document.getElementById('setup').style.display = 'block';
+    document.getElementById('winnerModal').style.display = 'none';
+    
+    currentNumber = 1;
+    revealedTiles = [];
+    gameLocked = false;
+    if (countdownInterval) clearInterval(countdownInterval);
+}
+
+window.addEventListener('resize', () => {
+    if (document.getElementById('game').style.display === 'block' && !isMemorizing && !gameLocked) {
+        const currentRevealed = [...revealedTiles];
+        generatePerfectGrid();
+        document.querySelectorAll('#grid .tile').forEach(tile => {
+            if (tile.dataset.number && !currentRevealed.includes(tile)) {
+                tile.textContent = '❓';
+            }
+        });
+    }
+});
+
+document.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter' && document.getElementById('setup').style.display !== 'none') {
+        startGame();
+    }
+});
+</script>
+
+</body>
+</html>
